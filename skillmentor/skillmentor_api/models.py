@@ -171,3 +171,18 @@ class StudentNotes(BaseModel):
     def __str__(self):
         return f"notes  {self.title}"
     
+
+class Progress(BaseModel):
+    student = models.ForeignKey(
+        'StudentDetails', on_delete=models.CASCADE, null=True, blank=True, related_name='progress'
+    )
+    materials = models.ForeignKey(
+        'Materials', on_delete=models.CASCADE, null=True, blank=True, related_name='progress'
+    )
+    marks = models.FloatField(default=0)
+    total_marks = models.FloatField(default=0)
+    percentage = models.FloatField(default=0)
+    completed = models.BooleanField(default=False)
+  
+    def __str__(self):
+        return f"progress for {self.student}"

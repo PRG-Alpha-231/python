@@ -32,9 +32,9 @@ urlpatterns=[
 
 
 
-
    ## QuizQuestionPaper ##
    path("AddQuizQuestionPaper/",views.AddQuizQuestionPaperAPIView.as_view()),
+   path("add_questions/",views.AddQuestionsAPIView.as_view()),
    path("update_QuizQuestionPaper/",views.UpdateQuizQuestionPaper.as_view()),
 
 
@@ -42,8 +42,14 @@ urlpatterns=[
    path("StudentNotesAPIView/",views.StudentNotesAPIView.as_view()),
    path("UpdateStudentNotes/",views.UpdateStudentNotes.as_view()),
 
+
       ## Chat bot ##
    path("chatbot_api/",views.chatbot_api),
+
+
+   ## ADD PROGRESS ##
+   path("AddMaterialProgress/",views.AddProgressForMaterial.as_view()),  
+   path("ViewMyProgress/",views.AddProgressForMaterial.as_view()),  
 
 ]  
 

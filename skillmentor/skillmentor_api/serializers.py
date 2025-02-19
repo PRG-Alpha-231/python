@@ -90,6 +90,10 @@ class QuizQuestionsSerializer(serializers.ModelSerializer):
         fields="__all__"
 
 
+class ProgressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Progress
+        fields="__all__"
 
 
 

@@ -16,6 +16,9 @@ from rest_framework import status
 from django.contrib.auth import authenticate
 
 
+from rest_framework.decorators import api_view
+import google.generativeai as genai  # Google Gemini AI SDK
+
 class LoginView(APIView):
     def post(self, request):
         email = request.data.get('email')
@@ -240,7 +243,21 @@ class AddQuizQuestionPaperAPIView(APIView):
         else:
             return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
         
-
+class AddQuestionsAPIView(APIView):
+    def post(self,request):
+        paper_id=request.data.get('paper_id')
+        if not paper_id:
+            return Response({'msg':'paper_id is required'},status=status.HTTP_400_BAD_REQUEST)
+        
+        paper=get_object_or_404(QuizQuestionPaper,id=paper_id)
+        serializer=QuizQuestionsSerializer(data=request.data)
+        if serializer.is_valid():
+            question=serializer.save()
+            paper.questions.add(question)
+            paper.save()
+            return Response({'msg':'Questions addedd successfully'},status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -313,12 +330,6 @@ class UpdateStudentNotes(APIView):
     ## CHAT BOT##
     
 
-import os
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
-import google.generativeai as genai  # Google Gemini AI SDK
-
 # Load API key securely from environment variables
 GOOGLE_API_KEY = "AIzaSyDObz6hewixFs3Hg1v0uMS3JVwToAn2rfs"
 
@@ -341,7 +352,6 @@ def chatbot_api(request):
         return Response({'error': 'Message cannot be empty'}, status=status.HTTP_400_BAD_REQUEST)
 
     response_data = get_answer(user_message)
-
     if response_data:
         return Response(response_data, status=status.HTTP_200_OK)
     else:
@@ -372,3 +382,37 @@ def get_answer(question):
     except Exception as e:
         print(f"Error in AI response: {e}")
         return False
+
+
+class AddProgressForMaterial(APIView):
+    def post(self,request):
+        material_id=request.data.get('material_id')
+        marks=request.data.get('marks')
+        total_marks=request.data.get('total_marks')
+        student=get_object_or_404(StudentDetails,profile=request.user)
+        material=get_object_or_404(Materials,id=material_id)
+        progress=Progress.objects.create(student=student,materials=material,marks=marks,total_marks=total_marks,percentage=(marks/total_marks)*100,completed=True)
+        return Response({'msg':'Progress status changed successfully'},status=status.HTTP_201_CREATED)
+    
+
+class ViewMyProgress(APIView):
+    def get(self, request):
+        student_id = request.GET.get('student_id')
+        subject=request.GET.get('subject')
+        student = get_object_or_404(StudentDetails, id=student_id)
+        progress_records = Progress.objects.filter(student=student)
+
+        total_progress = Materials.objects.filter(subject=subject).count()
+        completed_progress = progress_records.filter(completed=True).count()
+
+        progress_percentage = (completed_progress / total_progress * 100) if total_progress > 0 else 0
+        serializer = ProgressSerializer(progress_records, many=True)
+
+        return Response({
+            "progress_details": serializer.data,
+            "total_progress": total_progress,
+            "completed_progress": completed_progress,
+            "progress_percentage": round(progress_percentage, 2)
+        }, status=status.HTTP_200_OK)
+
+

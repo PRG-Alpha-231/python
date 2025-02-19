@@ -51,6 +51,11 @@ urlpatterns=[
    path("AddMaterialProgress/",views.AddProgressForMaterial.as_view()),  
    path("ViewMyProgress/",views.AddProgressForMaterial.as_view()),  
 
+
+   ## PDF CHAT ##
+   path("doc_upload/",views.PDFUploadView.as_view()),
+   path("doc_chatbot/",views.DocChatbotAPIView.as_view()),
+
 ]  
 
  

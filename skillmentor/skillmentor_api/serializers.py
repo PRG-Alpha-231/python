@@ -9,6 +9,13 @@ class InstructorRegisterSerializer(serializers.ModelSerializer):
         model=InstructorDetails
         fields='__all__'
 
+from .models import PDFDocument
+
+class PDFDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PDFDocument
+        fields = ['id','uploaded_pdf', 'extracted_text']
+
 
 class ListEndUsersSerializer(serializers.ModelSerializer):
     class Meta:

@@ -6,7 +6,7 @@ from . models import *
 
 class InstructorRegisterSerializer(serializers.ModelSerializer):
     class Meta:
-        model=Profile
+        model=InstructorDetails
         fields='__all__'
 
 

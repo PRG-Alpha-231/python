@@ -43,12 +43,13 @@ class LoginView(APIView):
 
 class AdminAddInstructor(APIView):
     def post (self,request):
+        user=request.user
         data=request.data
-        serializer=InstructorRegisterSerializer(data=data)
+        serializer=ProfileSerializer(data=data)
         serializer_details=InstructorRegisterSerializer(data=data)
         if serializer.is_valid() and serializer_details.is_valid():
             obj=serializer.save()
-            ins=serializer_details.save()
+            ins=serializer_details.save(institute=user.institute)
             ins.profile=obj
             ins.save()
             obj.set_password(data.get("password"))

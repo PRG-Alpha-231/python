@@ -46,6 +46,7 @@ class Profile(AbstractUser):
     role = models.CharField(max_length=50, choices=RoleChoices.choices)
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=50, blank=True, null=True)
+    institute= models.ForeignKey('Institute', on_delete=models.CASCADE, null=True, blank=True, related_name='institute_profiles')
 
     def __str__(self):
         return f'{self.email} -- {self.role}'
@@ -70,7 +71,6 @@ class InstructorDetails(BaseModel):
         'Subject', on_delete=models.CASCADE, null=True, blank=True, related_name="instructor_subjects"
     )
     qualification = models.CharField(max_length=100)
-    institute= models.ForeignKey('Institute', on_delete=models.CASCADE, null=True, blank=True, related_name='institute_profiles')
 
     def __str__(self):
         return self.profile.email if self.profile else "No Profile"

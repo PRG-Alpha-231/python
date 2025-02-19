@@ -70,6 +70,7 @@ class InstructorDetails(BaseModel):
         'Subject', on_delete=models.CASCADE, null=True, blank=True, related_name="instructor_subjects"
     )
     qualification = models.CharField(max_length=100)
+    institute= models.ForeignKey('Institute', on_delete=models.CASCADE, null=True, blank=True, related_name='institute_profiles')
 
     def __str__(self):
         return self.profile.email if self.profile else "No Profile"

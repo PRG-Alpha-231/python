@@ -92,9 +92,10 @@ class ListEndUsers(APIView):
 
 class AddInstituteAPIView(APIView):
     def post(self,request):
-        user=request.user
-        if user.institute:
-            return Response({'message':'institute already added for your admin profile'})
+        ins_id=request.data.get("institute_id")
+        if not ins_id:
+            return Response({'message':'institute id required'})
+            user=get_object_or_404(Profile,id=ins_id)
         serializer=InstituteSerializer(data=request.data)
         if serializer.is_valid():
             institute=serializer.save()

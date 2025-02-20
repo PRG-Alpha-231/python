@@ -41,6 +41,18 @@ class LoginView(APIView):
             return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
 
 
+class AdminRegistration(APIView):
+    def post (self,request):
+        data=request.data.copy()
+        data['role']=RoleChoices.ADMIN
+        serializer=ProfileSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'msg':'admin registered successfully','admin':serializer.data},status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class AdminAddInstructor(APIView):
     def post (self,request):
         user=request.user
@@ -48,8 +60,8 @@ class AdminAddInstructor(APIView):
         serializer=ProfileSerializer(data=data)
         serializer_details=InstructorRegisterSerializer(data=data)
         if serializer.is_valid() and serializer_details.is_valid():
-            obj=serializer.save()
-            ins=serializer_details.save(institute=user.institute)
+            obj=serializer.save(institute=user.institute)
+            ins=serializer_details.save()
             ins.profile=obj
             ins.save()
             obj.set_password(data.get("password"))
@@ -62,10 +74,11 @@ class AdminAddInstructor(APIView):
 class InstructorAddStudent(APIView):
     def post (self,request):
         data=request.data
+        user=request.user
         serializer=ProfileSerializer(data=data)
         serializer_details=StudentDetailsSerializer(data=data)
         if serializer.is_valid() and serializer_details.is_valid():
-            obj=serializer.save()
+            obj=serializer.save(institute=user.institute)
             student=serializer_details.save()
             student.profile=obj
             student.save()
@@ -92,10 +105,12 @@ class ListEndUsers(APIView):
 
 class AddInstituteAPIView(APIView):
     def post(self,request):
-        ins_id=request.data.get("institute_id")
-        if not ins_id:
-            return Response({'message':'institute id required'})
-            user=get_object_or_404(Profile,id=ins_id)
+        data=request.data
+        admin_id=data.get('admin_id')
+        if not admin_id:
+            return Response({'msg':'admin id required'},status=status.HTTP_400_BAD_REQUEST)
+     
+        user=get_object_or_404(Profile,id=admin_id)
         serializer=InstituteSerializer(data=request.data)
         if serializer.is_valid():
             institute=serializer.save()

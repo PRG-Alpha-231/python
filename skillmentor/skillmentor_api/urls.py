@@ -9,6 +9,12 @@ urlpatterns=[
    path("ListEndUsers",views.ListEndUsers.as_view()),
    path("InstructorAddsStudent/",views.InstructorAddStudent.as_view()),
 
+
+   path("AdminRegistration/",views.AdminRegistration.as_view()),
+
+
+
+
    ## institute
    path("add_institute/",views.AddInstituteAPIView.as_view()),
    path("update_institute/",views.UpdateInstitute.as_view()),

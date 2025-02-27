@@ -1,5 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import generics
 
 from .serializers import InstructorRegisterSerializer
 
@@ -23,11 +24,14 @@ class LoginView(APIView):
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
+        print(email)
+        print(password)
 
         if not email or not password:
             return Response({"detail": "email and password are required."}, status=status.HTTP_400_BAD_REQUEST)
 
         user = authenticate(request, username=email, password=password)
+        print(user)
         if user is not None:
             refresh = RefreshToken.for_user(user)
             access_token = refresh.access_token
@@ -116,7 +120,7 @@ class AddInstituteAPIView(APIView):
             institute=serializer.save()
             user.institute=institute
             user.save()
-            return Response({'msg':'institute addedd successfully'},status=status.HTTP_201_CREATED)
+            return Response({'msg':'institute addedd successfully','data':serializer.data},status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
         
@@ -146,16 +150,50 @@ class UpdateInstitute(APIView):
     
 
 
+## Subject APIS###
+
+class SubjectListCreateView(generics.ListCreateAPIView):
+    queryset = Subject.objects.all()
+    serializer_class = SubjectSerializer
+
+class SubjectRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Subject.objects.all()
+    serializer_class = SubjectSerializer
+
+class SubjectListCreateView(generics.ListCreateAPIView):
+    """ View to list all subjects and create a new subject """
+    queryset = Subject.objects.all()
+    serializer_class = SubjectSerializer
+
+class SubjectRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    """ View to retrieve, update, or delete a specific subject """
+    queryset = Subject.objects.all()
+    serializer_class = SubjectSerializer
+
+
+
 ## DEPARTMENT APIS ##
 class AddDepartmentAPIView(APIView):
     def post(self,request):
         serializer=DepartmentSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({'msg':'department addedd successfully'},status=status.HTTP_201_CREATED)
+            return Response({'msg':'department addedd successfully','data':serializer.data},status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-        
+
+class InstituteDepartmentsView(APIView):
+    
+    def get(self, request, institute_id):
+        print(institute_id)
+        try:
+            institute = Institute.objects.get(id=institute_id)
+        except Institute.DoesNotExist:
+            return Response({"error": "Institute not found"}, status=404)
+
+        departments = Department.objects.filter(institute=institute)
+        serializer = DepartmentSerializer(departments, many=True)
+        return Response(serializer.data)     
 
 
 class UpdateDepartment(APIView):

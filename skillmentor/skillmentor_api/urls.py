@@ -24,8 +24,11 @@ urlpatterns=[
    ## DEPARTMENTS ##
    path("add_Department/",views.AddDepartmentAPIView.as_view()),
    path("update_Department/",views.UpdateDepartment.as_view()),
-
-
+   path('institutes/<int:institute_id>/departments/', views.InstituteDepartmentsView.as_view(), name='institute-departments'),
+   
+   ##subjects##
+   path('subjects/', views.SubjectListCreateView.as_view(), name='subject-list-create'),
+   path('subjects/<int:pk>/', views.SubjectRetrieveUpdateDestroyView.as_view(), name='subject-detail'),
 
    ## PROFILES ##
    path("StudentUpdateProfile/",views.StudentUpdateProfile.as_view()),

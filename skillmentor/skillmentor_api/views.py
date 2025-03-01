@@ -57,23 +57,73 @@ class AdminRegistration(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+from django.contrib.auth import get_user_model
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.views import APIView
+from .serializers import ProfileSerializer, InstructorRegisterSerializer
+from .utils import generate_password  # Ensure this function exists
+
+User = get_user_model()  # Correct user model import
+
 class AdminAddInstructor(APIView):
-    def post (self,request):
-        user=request.user
-        data=request.data
-        serializer=ProfileSerializer(data=data)
-        serializer_details=InstructorRegisterSerializer(data=data)
-        if serializer.is_valid() and serializer_details.is_valid():
-            obj=serializer.save(institute=user.institute)
-            ins=serializer_details.save()
-            ins.profile=obj
-            ins.save()
-            obj.set_password(data.get("password"))
+    def post(self, request):
+        print("Received data:", request.data)  # Debugging
+
+        data = request.data.copy()  # Create a mutable copy of request data
+        email = data.get("email")
+
+        # Check if the email already exists
+        if User.objects.filter(email=email).exists():
+            return Response({'error': 'User with this email already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Generate password if not provided
+        if not data.get("password"):  # Check if password is missing or empty
+            data["password"] = generate_password()
+
+        serializer = ProfileSerializer(data=data)
+        serializer_details = InstructorRegisterSerializer(data=data)
+
+        profile_valid = serializer.is_valid()
+        instructor_valid = serializer_details.is_valid()
+
+        if profile_valid and instructor_valid:
+            obj = serializer.save()
+            obj.set_password(data["password"])  # Set password properly
             obj.save()
-            return Response({'msg':'Instructor added successfuly'},status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-        
+
+            ins = serializer_details.save()
+            ins.profile = obj
+            ins.save()
+
+            print(f"Instructor {obj.email} added successfully!")  # Debugging
+            return Response({'msg': 'Instructor added successfully'}, status=status.HTTP_201_CREATED)
+
+        # Print validation errors safely
+        if not profile_valid:
+            print("Profile Serializer Errors:", serializer.errors)  
+        if not instructor_valid:
+            print("Instructor Serializer Errors:", serializer_details.errors)  
+
+        return Response({
+            'profile_errors': serializer.errors if not profile_valid else None,
+            'instructor_errors': serializer_details.errors if not instructor_valid else None
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+import random
+import string
+
+def generate_password(length=12):
+    characters = string.ascii_letters + string.digits + string.punctuation
+    return ''.join(random.choice(characters) for _ in range(length))
+
+# Example usage
+password = generate_password(16)  # Generates a 16-character password
+print("Generated Password:", password)
+
 
 class InstructorAddStudent(APIView):
     def post (self,request):

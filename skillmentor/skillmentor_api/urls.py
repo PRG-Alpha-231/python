@@ -1,5 +1,10 @@
 from django.urls import path
+
+from skillmentor import settings
+
 from . import views
+from django.conf.urls.static import static
+
 
 
 urlpatterns=[
@@ -66,6 +71,6 @@ urlpatterns=[
    path("doc_chatbot/",views.DocChatbotAPIView.as_view()),
 
 ]  
-
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
  
   

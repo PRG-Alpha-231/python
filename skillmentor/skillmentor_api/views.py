@@ -56,6 +56,16 @@ class AdminRegistration(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+import random
+import string
+
+def generate_password(length=12):
+    characters = string.ascii_letters + string.digits + string.punctuation
+    return ''.join(random.choice(characters) for _ in range(length))
+
+# Example usage
+password = generate_password(16)  # Generates a 16-character password
+print("Generated Password:", password)
 
 
 from django.contrib.auth import get_user_model
@@ -63,7 +73,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from .serializers import ProfileSerializer, InstructorRegisterSerializer
-from .utils import generate_password  # Ensure this function exists
+# from .utils import generate_password  # Ensure this function exists
 
 User = get_user_model()  # Correct user model import
 
@@ -74,13 +84,19 @@ class AdminAddInstructor(APIView):
         data = request.data.copy()  # Create a mutable copy of request data
         email = data.get("email")
 
+        print("Email:", email)  # Debugging
+
         # Check if the email already exists
         if User.objects.filter(email=email).exists():
             return Response({'error': 'User with this email already exists.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Generate password if not provided
         if not data.get("password"):  # Check if password is missing or empty
+
             data["password"] = generate_password()
+
+            print("Generated Password:", data["password"])  # Debugging
+            send_notification_email(email, "Welcome to SkillMentor", f"Your password is: {data['password']}")
 
         serializer = ProfileSerializer(data=data)
         serializer_details = InstructorRegisterSerializer(data=data)
@@ -113,16 +129,16 @@ class AdminAddInstructor(APIView):
 
 
 
-import random
-import string
+# import random
+# import string
 
-def generate_password(length=12):
-    characters = string.ascii_letters + string.digits + string.punctuation
-    return ''.join(random.choice(characters) for _ in range(length))
+# def generate_password(length=12):
+#     characters = string.ascii_letters + string.digits + string.punctuation
+#     return ''.join(random.choice(characters) for _ in range(length))
 
-# Example usage
-password = generate_password(16)  # Generates a 16-character password
-print("Generated Password:", password)
+# # Example usage
+# password = generate_password(16)  # Generates a 16-character password
+# print("Generated Password:", password)
 
 
 class InstructorAddStudent(APIView):
@@ -522,6 +538,18 @@ class ViewMyProgress(APIView):
 
 
 
+from django.core.mail import send_mail
+from django.conf import settings
+
+def send_notification_email(to_email, subject, message):
+    print(f"Sending email to {to_email} with subject: {subject}")
+    send_mail(
+        subject,
+        message,
+        settings.EMAIL_HOST_USER,
+        [to_email],
+        fail_silently=False,
+    )
 
 ## chatbot using document data ##
 
